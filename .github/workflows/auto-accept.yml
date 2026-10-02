@@ -1,0 +1,58 @@
+name: Auto-accept public Java contributions
+on:
+  workflow_run:
+    workflows: ['Check class Java code']
+    types: [completed]
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+concurrency:
+  group: public-pr-merge
+  cancel-in-progress: false
+jobs:
+  accept:
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      # Never check out, download artifacts from, or execute the PR here.
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const run = context.payload.workflow_run;
+            const refs = run.pull_requests || [];
+            if (refs.length !== 1) {
+              core.setFailed('Cannot uniquely bind the successful build to a PR. No merge.');
+              return;
+            }
+            const number = refs[0].number;
+            const {data: pr} = await github.rest.pulls.get({owner, repo, pull_number: number});
+            if (pr.state !== 'open' || pr.draft || pr.base.ref !== 'main' ||
+                pr.head.sha !== run.head_sha || pr.base.repo.full_name !== `${owner}/${repo}`) {
+              core.setFailed('PR changed or is not eligible. No merge.');
+              return;
+            }
+            const files = await github.paginate(github.rest.pulls.listFiles,
+              {owner, repo, pull_number: number, per_page: 100});
+            // Keep deployment/build configuration out of public automatic merges.
+            // Anyone can contribute beginner Java and docs without Jonah's review.
+            const allowed = p => p.startsWith('src/main/java/') && p.endsWith('.java') ||
+              p === 'src/main/resources/plugin.yml' || p === 'README.md' ||
+              p.startsWith('docs/') && p.endsWith('.md');
+            if (pr.changed_files >= 3000 || files.length !== pr.changed_files ||
+                files.length === 0 || files.some(f => !allowed(f.filename) ||
+                  (f.previous_filename && !allowed(f.previous_filename)))) {
+              core.setFailed('PR changes protected setup/build files or file list is incomplete. No merge.');
+              return;
+            }
+            const {data: result} = await github.rest.pulls.merge({
+              owner, repo, pull_number: number, sha: pr.head.sha,
+              merge_method: 'squash', commit_title: `Class PR #${number}`
+            });
+            if (!result.merged) { core.setFailed('GitHub did not merge this PR.'); return; }
+            // Token-caused push does not trigger workflows. Explicit dispatch does.
+            await github.rest.actions.createWorkflowDispatch({
+              owner, repo, workflow_id: 'deploy.yml', ref: 'main'
+            });
+            core.info(`Merged PR #${number}; deployment dispatched on main.`);
