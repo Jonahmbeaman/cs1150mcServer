@@ -41,54 +41,35 @@ jobs:
         with:
           name: class-plugin
           path: out
-      - run: sudo apt-get update && sudo apt-get install -y sshpass
-      - name: Stop, upload one JAR, start, check power status
+      - name: Stop, upload one JAR, start and verify
         env:
-          SSHPASS: ${{ secrets.PEBBLE_SFTP_PASSWORD }}
           API_TOKEN: ${{ secrets.PEBBLE_API_TOKEN }}
-          KNOWN_HOSTS: ${{ secrets.PEBBLE_KNOWN_HOSTS }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$SSHPASS" && test -n "$API_TOKEN" && test -n "$KNOWN_HOSTS"
-          test -s out/class-server.jar
-          umask 077
-          mkdir -p "$HOME/.ssh"
-          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          test -n "$API_TOKEN" && test -s out/class-server.jar
           base='https://panel.pebblehost.com/api/client/servers/1c8d750f'
           auth="Authorization: Bearer $API_TOKEN"
           power() {
-            curl --fail --silent --show-error --connect-timeout 15 --max-time 45 \
-              -H "$auth" -H 'Accept: application/json' -H 'Content-Type: application/json' \
-              --data "{\"signal\":\"$1\"}" "$base/power"
-          }
-          sftp_run() {
-            sshpass -e sftp -oBatchMode=no -oStrictHostKeyChecking=yes -oConnectTimeout=15 \
-              -b "$1" -P 2222 'jonahmbeaman@gmail.com.1c8d750f@na1993.pebblehost.net'
+            curl --fail --silent --show-error --max-time 45 -H "$auth" \
+              -H 'Content-Type: application/json' --data "{\"signal\":\"$1\"}" "$base/power"
           }
           power stop
           sleep 45
-          state=$(curl --fail --silent --show-error --max-time 45 -H "$auth" \
-            -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
-          if [ "$state" != stopped ] && [ "$state" != offline ]; then
-            echo 'Server not confirmed stopped. No file uploaded. Check panel.'
-            exit 1
-          fi
-          # Keep previous JAR as a downloadable artifact. Missing on first deploy is OK.
-          printf 'get plugins/class-server.jar out/previous-class-server.jar\nquit\n' > /tmp/backup.sftp
-          sftp_run /tmp/backup.sftp || echo 'Previous JAR unavailable; inspect first-deploy/backup status.'
-          # Replace only one plugin. Server/world directories are never mirrored.
-          printf 'put out/class-server.jar plugins/class-server.jar\nquit\n' > /tmp/upload.sftp
-          if ! sftp_run /tmp/upload.sftp; then
-            echo 'Upload failed; leaving server stopped to avoid running a partial JAR. Restore from backup in panel.'
-            exit 1
-          fi
+          state=$(curl --fail --silent --show-error -H "$auth" "$base/resources" | jq -r '.attributes.state')
+          test "$state" = stopped || { echo 'Not stopped. No upload.'; exit 1; }
+          curl --fail --silent --show-error -H "$auth" "$base/files/contents?file=%2Fplugins%2Fclass-server.jar" \
+            -o out/previous-class-server.jar || rm -f out/previous-class-server.jar
+          upload=$(curl --fail --silent --show-error -H "$auth" "$base/files/upload" | jq -r '.attributes.url')
+          test -n "$upload" && test "$upload" != null
+          echo "::add-mask::$upload"
+          curl --fail --silent --show-error --max-time 90 \
+            -F 'files=@out/class-server.jar;filename=class-server.jar' "$upload&directory=/plugins"
           power start
           sleep 60
-          state=$(curl --fail --silent --show-error --max-time 45 -H "$auth" \
-            -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
-          test "$state" = running || { echo 'Server not running. Check console and restore previous JAR if needed.'; exit 1; }
-          echo 'JAR uploaded and server reports running. This does not prove the plugin loaded; check console and /hello.'
+          state=$(curl --fail --silent --show-error -H "$auth" "$base/resources" | jq -r '.attributes.state')
+          test "$state" = running || { echo 'Not running. Check console and restore prior JAR.'; exit 1; }
+          echo 'Uploaded JAR and server reports running. Verify plugin load/commands in console.'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
