@@ -1,8 +1,5 @@
 name: Deploy class changes automatically
 on:
-  push:
-    branches: [main]
-    paths: ['src/**', 'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties', 'gradle/**', 'gradlew', 'gradlew.bat', '.github/workflows/deploy.yml']
   workflow_dispatch:
 permissions:
   contents: read
