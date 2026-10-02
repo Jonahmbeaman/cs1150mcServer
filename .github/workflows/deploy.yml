@@ -56,11 +56,11 @@ jobs:
           }
           state=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/resources" | jq -er '.attributes.state')
           test "$state" = running || { echo 'Preflight not running; no stop.'; exit 1; }
-          trap 'power start || true' ERR
+          trap 'code=$?; if [ $code -ne 0 ]; then power start || true; fi' EXIT
           power stop
           sleep 45
           state=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
-          test "$state" = stopped || { echo 'Not stopped. No upload.'; exit 1; }
+          test "$state" = offline || { echo 'Not stopped. No upload.'; exit 1; }
           curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/files/contents?file=%2Fplugins%2Fclass-server.jar" \
             -o out/previous-class-server.jar || rm -f out/previous-class-server.jar
           upload=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/files/upload" | jq -r '.attributes.url')
@@ -72,6 +72,7 @@ jobs:
           sleep 60
           state=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
           test "$state" = running || { echo 'Not running. Check console and restore prior JAR.'; exit 1; }
+          trap - EXIT
           echo 'Uploaded JAR and server reports running. Verify plugin load/commands in console.'
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
