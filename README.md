@@ -8,8 +8,8 @@ Add Java Paper plugins here. This is a Paper project, not a Forge/Fabric mod loa
 2. Open `src/main/java/io/github/jonahmbeaman/classserver/BeginnerExamples.java`.
 3. Click the pencil. Change the greeting in `hello()` from `Hello, ` to your own words. Keep the quotes and semicolon.
 4. Write a short commit message, such as `Alex: change hello greeting`.
-5. If Jonah has invited you as a collaborator, commit to `main`. After automation is activated, a successful build uploads the JAR and restarts the server automatically. Jonah does not approve every change. All players briefly disconnect during restart.
-6. If GitHub makes you fork instead, submit the edit as a pull request. After activation, eligible Java/example/doc edits from anyone are accepted automatically when the build passes, then deployed. No collaborator invitation or Jonah review is needed. Keep setup/workflow/build files unchanged; those are not auto-accepted. GitHub may still require approval before a new contributor's build can run. Merge conflicts or a red build need fixing.
+5. If Jonah has invited you as a collaborator, commit to `main`. Now a successful build uploads the JAR and restarts the server automatically. Jonah does not approve every change. All players briefly disconnect during restart.
+6. If GitHub makes you fork instead, submit the edit as a pull request. Now eligible Java/example/doc edits from anyone are accepted automatically when the build passes, then deployed. No collaborator invitation or Jonah review is needed. Keep setup/workflow/build files unchanged; those are not auto-accepted. GitHub may still require approval before a new contributor's build can run. Merge conflicts or a red build need fixing.
 7. Look at the Actions tab for the result. When deployment succeeds, join and type `/hello`.
 
 ## Examples
@@ -35,7 +35,7 @@ To add a command, add its name in `src/main/resources/plugin.yml`, then add a ma
 
 ## Live setup and testing
 
-GitHub build and encrypted deployment setup are configured; the first server upload test is underway. See `docs/ACTIVATION.md`. The target API is Paper 26.3.build.141-beta with Java 25, matching the live server startup log read October 2. The project compiles against that API; server plugin loading still needs a real deployment test.
+GitHub-to-server deployment passed October 2: build, signed JAR upload, restart, plugin load and console /hello, /dice and /count. See `docs/ACTIVATION.md`. The target API is Paper 26.3.build.141-beta with Java 25, matching the live server startup log read October 2. The project compiles against that API; the installed plugin loaded successfully on the server.
 
 The public auto-accept workflow is published, as Jonah requested. Its fork-to-merge-to-deploy path still needs a live contribution test. Anyone who finds this public repo can propose Java code that runs on the server. Sharing a link does not give direct push access; successful eligible PRs are auto-merged instead. GitHub fork-run approval settings may still require a maintainer action for new accounts.
 
