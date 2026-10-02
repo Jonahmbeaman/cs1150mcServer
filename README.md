@@ -108,6 +108,7 @@ GitHub builds the code into one plugin file and sends it to the server. Do not u
 
 - Make one small change at a time. Each accepted code change restarts the server.
 - Wait for a deployment to finish before sending another change. Do not spam commits.
+- README and documentation-only edits do not restart the server.
 - Do not add passwords, API keys, world saves, or player data.
 - Avoid endless loops and code that makes the server wait.
 - A green build checks compilation, not safety. Code can still crash the server or damage the world.
