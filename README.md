@@ -33,14 +33,14 @@ The output is `build/libs/class-server.jar`. Do not commit compiled JARs. Test n
 
 To add a command, add its name in `src/main/resources/plugin.yml`, then add a matching switch case in `ClassServerPlugin.java`. Use a new unique name so you do not overwrite another plugin's command.
 
-## Before the first automatic deployment
+## Live setup and testing
 
-This staged project is NOT linked yet. See `docs/ACTIVATION.md`. The target API is Paper 26.3.build.141-beta with Java 25, matching the live server startup log read October 2. The project compiles against that API; server plugin loading still needs a real deployment test.
+GitHub build and encrypted deployment setup are configured; the first server upload test is underway. See `docs/ACTIVATION.md`. The target API is Paper 26.3.build.141-beta with Java 25, matching the live server startup log read October 2. The project compiles against that API; server plugin loading still needs a real deployment test.
 
-Automation is staged for public pull requests from anyone, as Jonah requested. Anyone who finds this public repo can propose Java code that runs on the server. Sharing a link does not give direct push access; successful eligible PRs are auto-merged instead. GitHub fork-run approval settings may still require a maintainer action for new accounts.
+The public auto-accept workflow is published, as Jonah requested. Its fork-to-merge-to-deploy path still needs a live contribution test. Anyone who finds this public repo can propose Java code that runs on the server. Sharing a link does not give direct push access; successful eligible PRs are auto-merged instead. GitHub fork-run approval settings may still require a maintainer action for new accounts.
 
 ## Ground rules
 
 Do not commit passwords, API keys, server backups, world/player files, or private data. No infinite loops or blocking sleeps. Coordinate edits to the same file. Only `class-server.jar` is uploaded; other plugins and worlds are not synchronized or deleted.
 
-Donations are optional and do not buy perks. The prepared Ko-fi page still needs Jonah's Stripe onboarding. No working donation checkout is claimed yet.
+Donations are optional and do not buy perks. Donate at https://ko-fi.com/majinta . The minimum is $1. Funds go to Jonah's Stripe balance, then his bank, not directly into PebbleHost. Payment processing fees still apply.
