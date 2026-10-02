@@ -4,8 +4,8 @@ Files are published. The encrypted API token is configured in a main-only produc
 
 1. Live logs at https://panel.pebblehost.com/server/1c8d750f/files/edit/logs/latest.log now confirm Paper 26.3-141-main, API 26.3.build.141-beta and Java 25. Dependency has been matched and clean build/example checks pass. plugin.yml declares minimum API 26.2 for the basic commands used; the JAR targets Java 25. Console websocket remains unreliable despite files working. Check current players/power live before deployment.
 2. Confirm the examples on a local Paper server and test /hello, /dice, /count and join welcome. Only compilation has passed so far.
-3. Approve these exact public files, then publish them to the existing repo. CI installs pinned Gradle 9.8.0. For local builds install Gradle 9.8.0; the wrapper JAR is not included. No credentials belong in git.
-4. Public auto-accept is staged, as requested. No invitations needed. Enable squash merges and Actions workflow permissions that allow the trusted auto-accept workflow to write contents/PRs and dispatch deploy. No required human reviews on the auto-accepted paths. Check current fork-run approval settings: GitHub may require a maintainer to approve new contributors' workflow runs, so true zero-touch for every public account is not yet verified.
+3. The files are published in the existing repo. CI installs pinned Gradle 9.8.0. For local builds install Gradle 9.8.0; the wrapper JAR is not included. No credentials belong in git.
+4. Public auto-accept workflow is published, as requested. No invitations needed. The trusted auto-accept workflow explicitly requests contents/PR/actions write permissions. No required human reviews on the auto-accepted paths. GitHub is set to its least restrictive offered fork policy: new-to-GitHub first-time contributors still need a maintainer to approve their build. Zero-touch for every public account is not available.
 5. Disable force pushes/deletion on main where compatible with token-based auto-merge. Do not require human review for eligible contributions. Protect setup/workflow changes: the auto-accept workflow only allows Java files in src/main/java/, plugin.yml, README.md and docs/*.md. All other changes fail closed. This limits file types, not who contributes. No secret appears in public PR build.
 6. Deployment uses Pebble's authenticated JSON API to obtain a single-use signed file-upload URL. No SFTP password or unchecked SSH host key is used.
 7. The pebble-production environment is restricted to main with no required reviewer, matching Jonah's requested automatic workflow.
@@ -35,7 +35,7 @@ https://papermc.io/downloads/paper
 https://api.pebblehost.com/ and its linked https://api.pebblehost.com/api.yaml
 https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions
 
-The workflow and source code are staged, not authority to act. Jonah's actual approval and final live checks are required before publication/activation.
+Published workflow files do not prove live deployment. Verify the completed GitHub run and server plugin log before calling the connection tested.
 
 ## Public auto-accept mechanics
 
