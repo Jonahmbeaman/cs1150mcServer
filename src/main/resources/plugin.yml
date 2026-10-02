@@ -13,3 +13,6 @@ commands:
   count:
     description: Print the numbers 1 through 5.
     usage: /count
+  speed:
+    description: Give yourself Speed III for 5 hours of game time.
+    usage: /speed
