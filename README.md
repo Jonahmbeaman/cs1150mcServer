@@ -108,7 +108,7 @@ GitHub builds the code into one plugin file and sends it to the server. Do not u
 
 ## Optional donations
 
-[Donate through Ko-fi](https://ko-fi.com/majinta). it costs $8/month to keep the server running aith 8 gigs which is abt enough for 15 concurrent players (with all the mods i hope you make). we could upgrade or if u just have pity on this college student whose paying out of pocket I appreciate it.
-.
+[Donate through Ko-fi](https://ko-fi.com/majinta). it costs $8/month to keep the server running with 8 gigs which is abt enough for 15 concurrent players (with all the mods i hope you make). we could upgrade or if u just have pity on this college student whose paying out of pocket I appreciate it.
+
 
 [Deployment and recovery notes](docs/ACTIVATION.md)
