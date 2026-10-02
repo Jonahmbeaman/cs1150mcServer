@@ -1,8 +1,8 @@
 # The Stone Zone
 
 
-you can upload code through here and it will ship to the server and update asap
-generally try to make sure ur code works before you send it because every update causes a restart. too many restarts at once and bad things happen
+you can upload code through here and it will ship to the server and update asap.
+generally try to make sure ur code works before you send it because every update causes a restart. too many restarts at once and bad things happen.
 theoretically you can delete the server through, so please dont if ppl are building stuff. honor system type shi yk?
 
 ## 1. Join the server
