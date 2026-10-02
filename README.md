@@ -1,23 +1,15 @@
 # The Stone Zone
 
-A shared Minecraft server for learning Java. You can play, change the example code, and see your change in the game.
 
-Start with the steps below. You do not need to download, zip, or upload a folder for your first change.
+you can upload code through here and it will ship to the server and update asap
+generally try to make sure ur code works before you send it because every update causes a restart. too many restarts at once and bad things happen
+theoretically you can delete the server through, so please dont if ppl are building stuff. honor system type shi yk?
 
 ## 1. Join the server
-
-1. Open **Minecraft: Java Edition** on your computer. Bedrock Edition is not supported by this setup.
-2. Click **Multiplayer**.
-3. Click **Add Server**.
-4. In **Server Name**, type `The Stone Zone`.
-5. In **Server Address**, paste:
-
+IP:
    ```text
    51.161.0.7:25573
    ```
-
-6. Click **Done**.
-7. Select **The Stone Zone**, then click **Join Server**.
 
 If Minecraft says the version is incompatible, use the Minecraft version shown for the server. If it is restarting, wait a few minutes and try again.
 
@@ -32,7 +24,7 @@ Once you are in the game, press **T** to open chat. Type one command, then press
 
 These examples are already installed. The greeting is a good place to make your first change.
 
-## 3. Change the greeting in your browser
+## 3. lil tutorial step by step so yk how it all works
 
 You need a free GitHub account. You do not need to install a code editor for this example.
 
@@ -67,7 +59,7 @@ If you already have permission to save directly to the shared `main` branch, Git
 
 1. Open your pull request. GitHub checks whether the Java code builds.
 2. If the check fails, open its details, fix your code in the same file, and save again. You do not need another pull request.
-3. If your GitHub account is new, the first check may say it needs approval. Ask the server owner to approve the workflow run.
+3. If your GitHub account is new, the first check may say it needs approval. Ask the me to approve on the discord or smt and i will.
 4. Changes to the example Java files are set up to merge automatically after a successful check. A conflict or a change to protected setup files can stop the merge.
 5. Open the shared project's **Actions** tab. Look for **Deploy class changes automatically** and wait for a green check.
 6. The server briefly disconnects players while it restarts. Rejoin, open chat, and type `/hello`.
@@ -108,23 +100,11 @@ GitHub builds the code into one plugin file and sends it to the server. Do not u
 
 - Make one small change at a time. Each accepted code change restarts the server.
 - Wait for a deployment to finish before sending another change. Do not spam commits.
-- README and documentation-only edits do not restart the server.
-- Do not add passwords, API keys, world saves, or player data.
 - Avoid endless loops and code that makes the server wait.
 - A green build checks compilation, not safety. Code can still crash the server or damage the world.
 - A manual world snapshot exists. It is not a continuous backup.
 
-## Optional: work on your computer
 
-You can skip this section if you are editing in your browser.
-
-Use a Java 25 JDK, an editor such as IntelliJ IDEA Community, and Gradle 9.8.0. Open a copy of this project as a Gradle project. Run:
-
-```text
-gradle clean build
-```
-
-The plugin will be at `build/libs/class-server.jar`. Test it on a local Paper server before changing the shared server. The Gradle wrapper is incomplete; use your installed Gradle rather than `gradlew`.
 
 ## Optional donations
 
