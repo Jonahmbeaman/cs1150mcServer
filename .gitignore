@@ -1,0 +1,12 @@
+.gradle/
+build/
+.idea/
+*.iml
+.env
+.env.*
+*.key
+*.pem
+server/
+world*/
+logs/
+secrets/
