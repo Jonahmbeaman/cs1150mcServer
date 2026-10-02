@@ -1,9 +1,9 @@
-# Activation checklist (not active yet)
+# Deployment status and recovery
 
-Files are published. The encrypted API token is configured in a main-only production environment. GitHub build passed; live deployment is still being tested. No successful server upload has been verified yet.
+Files are published. The encrypted API token is configured in a main-only production environment. GitHub deploy test #5 uploaded the JAR and restarted successfully on October 2. Live logs confirm ClassServer v0.1.0 enabled; /hello, /dice and /count returned expected console output.
 
 1. Live logs at https://panel.pebblehost.com/server/1c8d750f/files/edit/logs/latest.log now confirm Paper 26.3-141-main, API 26.3.build.141-beta and Java 25. Dependency has been matched and clean build/example checks pass. plugin.yml declares minimum API 26.2 for the basic commands used; the JAR targets Java 25. Console websocket remains unreliable despite files working. Check current players/power live before deployment.
-2. Confirm the examples on a local Paper server and test /hello, /dice, /count and join welcome. Only compilation has passed so far.
+2. Confirm the examples on a local Paper server and test /hello, /dice, /count and join welcome. Compilation and live console command tests passed. In-game join welcome still needs player verification.
 3. The files are published in the existing repo. CI installs pinned Gradle 9.8.0. For local builds install Gradle 9.8.0; the wrapper JAR is not included. No credentials belong in git.
 4. Public auto-accept workflow is published, as requested. No invitations needed. The trusted auto-accept workflow explicitly requests contents/PR/actions write permissions. No required human reviews on the auto-accepted paths. GitHub is set to its least restrictive offered fork policy: new-to-GitHub first-time contributors still need a maintainer to approve their build. Zero-touch for every public account is not available.
 5. Disable force pushes/deletion on main where compatible with token-based auto-merge. Do not require human review for eligible contributions. Protect setup/workflow changes: the auto-accept workflow only allows Java files in src/main/java/, plugin.yml, README.md and docs/*.md. All other changes fail closed. This limits file types, not who contributes. No secret appears in public PR build.
