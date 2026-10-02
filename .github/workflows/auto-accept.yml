@@ -51,8 +51,15 @@ jobs:
               merge_method: 'squash', commit_title: `Class PR #${number}`
             });
             if (!result.merged) { core.setFailed('GitHub did not merge this PR.'); return; }
-            // Token-caused push does not trigger workflows. Explicit dispatch does.
-            await github.rest.actions.createWorkflowDispatch({
-              owner, repo, workflow_id: 'deploy.yml', ref: 'main'
-            });
-            core.info(`Merged PR #${number}; deployment dispatched on main.`);
+            // A token-caused push does not trigger a deploy. Dispatch only for
+            // plugin changes; README/docs-only contributions must not restart.
+            const pluginChanged = files.some(f => f.filename.startsWith('src/') ||
+              (f.previous_filename && f.previous_filename.startsWith('src/')));
+            if (pluginChanged) {
+              await github.rest.actions.createWorkflowDispatch({
+                owner, repo, workflow_id: 'deploy.yml', ref: 'main'
+              });
+              core.info(`Merged PR #${number}; deployment dispatched on main.`);
+            } else {
+              core.info(`Merged PR #${number}; documentation only, no deployment.`);
+            }
