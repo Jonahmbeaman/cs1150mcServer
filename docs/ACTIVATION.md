@@ -11,7 +11,7 @@ Files are published. The encrypted API token is configured in a main-only produc
 7. The pebble-production environment is restricted to main with no required reviewer, matching Jonah's requested automatic workflow.
 8. PEBBLE_API_TOKEN is the only deployment secret. The token UI has account scope, not a per-server permission selector. It is encrypted, never committed.
 9. Jonah chose immediate per-change deployment after the restart/rate-limit warning on October 2: every qualifying push stops the server, makes one status read after 45 seconds, uploads, starts it, then makes one status read after 60 seconds. This briefly disconnects players. Busy commit traffic means more restarts/API calls and can trigger host throttling. No polling loop is used. Production concurrency serializes deploys; stop on challenges or throttling.
-10. Make a real world backup before first run. The workflow saves the previous plugin JAR only, NOT world data. Paid automatic backups were not part of the verified service receipt.
+10. A pre-plugin world archive was created and downloaded October 2: archive-2026-10-02T180905Z.tar.gz. Tar inspection confirmed world/player files. It is a manual on-server snapshot, not a rolling backup. The workflow saves the previous plugin JAR only, NOT world data. Paid automatic backups were not part of the verified service receipt.
 11. Run a first manual deployment while watching panel console. Confirm signed-API upload, correct plugin load and commands. Only then call auto-deploy linked. Failed build does not touch server. Failed upload leaves server stopped; restore previous JAR through panel before starting. A running server doesn't prove plugin health.
 
 ## Secret isolation and remaining risk
