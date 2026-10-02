@@ -1,0 +1,95 @@
+name: Deploy class changes automatically
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties', 'gradle/**', 'gradlew', 'gradlew.bat', '.github/workflows/deploy.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pebble-production
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '25'
+      - run: chmod +x gradlew && ./gradlew --no-daemon clean build
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: class-plugin
+          path: build/libs/class-server.jar
+          if-no-files-found: error
+          retention-days: 7
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # No required reviewer after Jonah authorizes activation.
+    # Restrict this environment to main; fork PRs never enter this job.
+    environment: pebble-production
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: class-plugin
+          path: out
+      - run: sudo apt-get update && sudo apt-get install -y sshpass
+      - name: Stop, upload one JAR, start, check power status
+        env:
+          SSHPASS: ${{ secrets.PEBBLE_SFTP_PASSWORD }}
+          API_TOKEN: ${{ secrets.PEBBLE_API_TOKEN }}
+          KNOWN_HOSTS: ${{ secrets.PEBBLE_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SSHPASS" && test -n "$API_TOKEN" && test -n "$KNOWN_HOSTS"
+          test -s out/class-server.jar
+          umask 077
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          base='https://panel.pebblehost.com/api/client/servers/1c8d750f'
+          auth="Authorization: Bearer $API_TOKEN"
+          power() {
+            curl --fail --silent --show-error --connect-timeout 15 --max-time 45 \
+              -H "$auth" -H 'Accept: application/json' -H 'Content-Type: application/json' \
+              --data "{\"signal\":\"$1\"}" "$base/power"
+          }
+          sftp_run() {
+            sshpass -e sftp -oBatchMode=no -oStrictHostKeyChecking=yes -oConnectTimeout=15 \
+              -b "$1" -P 2222 'jonahmbeaman@gmail.com.1c8d750f@na1993.pebblehost.net'
+          }
+          power stop
+          sleep 45
+          state=$(curl --fail --silent --show-error --max-time 45 -H "$auth" \
+            -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
+          if [ "$state" != stopped ] && [ "$state" != offline ]; then
+            echo 'Server not confirmed stopped. No file uploaded. Check panel.'
+            exit 1
+          fi
+          # Keep previous JAR as a downloadable artifact. Missing on first deploy is OK.
+          printf 'get plugins/class-server.jar out/previous-class-server.jar\nquit\n' > /tmp/backup.sftp
+          sftp_run /tmp/backup.sftp || echo 'Previous JAR unavailable; inspect first-deploy/backup status.'
+          # Replace only one plugin. Server/world directories are never mirrored.
+          printf 'put out/class-server.jar plugins/class-server.jar\nquit\n' > /tmp/upload.sftp
+          if ! sftp_run /tmp/upload.sftp; then
+            echo 'Upload failed; leaving server stopped to avoid running a partial JAR. Restore from backup in panel.'
+            exit 1
+          fi
+          power start
+          sleep 60
+          state=$(curl --fail --silent --show-error --max-time 45 -H "$auth" \
+            -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
+          test "$state" = running || { echo 'Server not running. Check console and restore previous JAR if needed.'; exit 1; }
+          echo 'JAR uploaded and server reports running. This does not prove the plugin loaded; check console and /hello.'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: previous-class-plugin
+          path: out/previous-class-server.jar
+          if-no-files-found: ignore
+          retention-days: 14
