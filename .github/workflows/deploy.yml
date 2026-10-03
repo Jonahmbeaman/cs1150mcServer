@@ -2,7 +2,7 @@ name: Deploy class changes automatically
 on:
   push:
     branches: [main]
-    paths: ['src/**', 'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties', '.github/workflows/deploy.yml']
+    paths: ['plugins-extra/**', 'src/**', 'build.gradle.kts', 'settings.gradle.kts', 'gradle.properties', '.github/workflows/deploy.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,10 +24,16 @@ jobs:
         with:
           gradle-version: '9.8.0'
       - run: gradle --no-daemon clean build
+      - name: Decode BackVein plugin jar
+        run: |
+          base64 -d plugins-extra/BackVein-1.0.0.jar.b64 > build/libs/BackVein-1.0.0.jar
+          test "$(sha256sum build/libs/BackVein-1.0.0.jar | cut -d' ' -f1)" = b17e43ec62d7ff48aa1281d7e3aabef0c465244f7c683c6e361dc8968a7c6bb6
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: class-plugin
-          path: build/libs/class-server.jar
+          path: |
+            build/libs/class-server.jar
+            build/libs/BackVein-1.0.0.jar
           if-no-files-found: error
           retention-days: 7
   deploy:
@@ -47,7 +53,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$API_TOKEN" && test -s out/class-server.jar
+          test -n "$API_TOKEN" && test -s out/class-server.jar && test -s out/BackVein-1.0.0.jar
           base='https://panel.pebblehost.com/api/client/servers/1c8d750f'
           auth="Authorization: Bearer $API_TOKEN"
           power() {
@@ -68,6 +74,11 @@ jobs:
           echo "::add-mask::$upload"
           curl --fail --silent --show-error --max-time 90 \
             -F 'files=@out/class-server.jar;filename=class-server.jar' "$upload&directory=/plugins"
+          upload2=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/files/upload" | jq -r '.attributes.url')
+          test -n "$upload2" && test "$upload2" != null
+          echo "::add-mask::$upload2"
+          curl --fail --silent --show-error --max-time 90 \
+            -F 'files=@out/BackVein-1.0.0.jar;filename=BackVein-1.0.0.jar' "$upload2&directory=/plugins"
           power start
           sleep 60
           state=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
