@@ -24,16 +24,21 @@ jobs:
         with:
           gradle-version: '9.8.0'
       - run: gradle --no-daemon clean build
-      - name: Decode BackVein plugin jar
+      - name: Decode extra plugin jars
         run: |
-          base64 -d plugins-extra/BackVein-1.0.0.jar.b64 > build/libs/BackVein-1.0.0.jar
-          test "$(sha256sum build/libs/BackVein-1.0.0.jar | cut -d' ' -f1)" = b17e43ec62d7ff48aa1281d7e3aabef0c465244f7c683c6e361dc8968a7c6bb6
+          mkdir -p build/extra
+          for f in plugins-extra/*.jar.b64; do base64 -d "$f" > "build/extra/$(basename "$f" .b64)"; done
+          ls -l build/extra
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: class-plugin
-          path: |
-            build/libs/class-server.jar
-            build/libs/BackVein-1.0.0.jar
+          path: build/libs/class-server.jar
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: extra-plugins
+          path: build/extra/*.jar
           if-no-files-found: error
           retention-days: 7
   deploy:
@@ -47,13 +52,17 @@ jobs:
         with:
           name: class-plugin
           path: out
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: extra-plugins
+          path: out-extra
       - name: Stop, upload one JAR, start and verify
         env:
           API_TOKEN: ${{ secrets.PEBBLE_API_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$API_TOKEN" && test -s out/class-server.jar && test -s out/BackVein-1.0.0.jar
+          test -n "$API_TOKEN" && test -s out/class-server.jar && ls out-extra/*.jar
           base='https://panel.pebblehost.com/api/client/servers/1c8d750f'
           auth="Authorization: Bearer $API_TOKEN"
           power() {
@@ -74,11 +83,13 @@ jobs:
           echo "::add-mask::$upload"
           curl --fail --silent --show-error --max-time 90 \
             -F 'files=@out/class-server.jar;filename=class-server.jar' "$upload&directory=/plugins"
-          upload2=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/files/upload" | jq -r '.attributes.url')
-          test -n "$upload2" && test "$upload2" != null
-          echo "::add-mask::$upload2"
-          curl --fail --silent --show-error --max-time 90 \
-            -F 'files=@out/BackVein-1.0.0.jar;filename=BackVein-1.0.0.jar' "$upload2&directory=/plugins"
+          for jar in out-extra/*.jar; do
+            name=$(basename "$jar")
+            up=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/files/upload" | jq -r '.attributes.url')
+            test -n "$up" && test "$up" != null
+            echo "::add-mask::$up"
+            curl --fail --silent --show-error --max-time 90 -F "files=@$jar;filename=$name" "$up&directory=/plugins"
+          done
           power start
           sleep 60
           state=$(curl --fail --silent --show-error -H "$auth" -H 'Accept: application/json' "$base/resources" | jq -r '.attributes.state')
